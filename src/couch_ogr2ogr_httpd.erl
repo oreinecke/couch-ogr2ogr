@@ -22,9 +22,12 @@ handle_req(#httpd{method='POST'}=Req) ->
     ++ BaseName ++ ".geojson " 
     ++ BaseName ++ ".shp"
   ),
-  {ok, GeoJSON} = file:read_file( BaseName ++ ".geojson"),
-  mochitemp:rmtempdir(TempDir),
-  couch_httpd:send_response(Req, 200, [{"Content-type", "application/json;charset=utf-8"}], GeoJSON);
+  case file:read_file( BaseName ++ ".geojson") of
+    {ok, GeoJSON} ->
+      couch_httpd:send_response(Req, 200, [{"Content-type", "application/json;charset=utf-8"}], GeoJSON);
+    {err, _} -> throw({bad_request, "Unable to convert your input into a GeoJSON."})
+  end,
+  mochitemp:rmtempdir(TempDir);
 
 handle_req(#httpd{method='GET'}=Req) ->
   verify_roles(Req),
