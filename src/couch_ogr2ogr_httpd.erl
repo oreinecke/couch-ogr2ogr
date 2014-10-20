@@ -69,6 +69,4 @@ verify_roles(Roles, [ Role | AllowedRoles] ) ->
     _ -> verify_roles(Roles, AllowedRoles)
   end;
 verify_roles(_Roles, [] ) -> 
-  throw({unauthorized, "You must be "
-        ++ couch_config:get("ogr2ogr", "roles") 
-        ++ " or admin to use this service."}).
+  throw({unauthorized, "You are not authorized to access this service."}).
