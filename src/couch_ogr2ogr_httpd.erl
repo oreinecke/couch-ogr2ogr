@@ -14,12 +14,12 @@ handle_req(#httpd{method='POST'}=Req) ->
   lists:foreach( fun({Extension, Content}) ->
     file:write_file(BaseName ++ "." ++ binary_to_list(Extension), base64:decode(Content))
   end, Props ),
-  os:cmd(get_command() 
-    ++ " -f GeoJSON " 
+  os:cmd(get_command()
+    ++ " -f GeoJSON "
     ++ case proplists:is_defined(<<"qpj">>, Props) of
       true -> " -a_srs " ++ BaseName ++ ".qpj ";
       false -> "" end
-    ++ BaseName ++ ".geojson " 
+    ++ BaseName ++ ".geojson "
     ++ BaseName ++ ".shp"
   ),
   case file:read_file( BaseName ++ ".geojson") of
@@ -48,7 +48,7 @@ get_command() ->
   end.
 
 validate_config() ->
-  case get_command() of 
+  case get_command() of
     undefined -> throw({internal_server_error, "Undefined path to ogr2ogr comand."});
     _-> ok
   end.
@@ -66,10 +66,10 @@ verify_roles(#user_ctx{roles=Roles}) ->
     [] -> ok;
     AllowedRoles -> verify_roles( Roles, [ <<"_admin">> | AllowedRoles] )
   end.
-verify_roles(Roles, [ Role | AllowedRoles] ) -> 
+verify_roles(Roles, [ Role | AllowedRoles] ) ->
   case lists:member(Role, Roles) of
     true -> ok;
     _ -> verify_roles(Roles, AllowedRoles)
   end;
-verify_roles(_Roles, [] ) -> 
+verify_roles(_, [] ) ->
   throw({unauthorized, "You are not authorized to access this service."}).
