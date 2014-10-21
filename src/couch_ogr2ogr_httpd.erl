@@ -40,18 +40,21 @@ handle_req(#httpd{method='GET'}=Req) ->
 handle_req(Req) ->
   couch_httpd:send_method_not_allowed(Req, "GET,POST").
 
-get_command() ->
-  case couch_config:get("ogr2ogr", "command") of
-    "null" -> undefined;
+get_config(Name) ->
+  case couch_config:get("ogr2ogr", Name) of
     "undefined" -> undefined;
-    Command -> Command
+    "null" -> undefined;
+    Config -> Config
   end.
 
 validate_config() ->
-  case get_command() of
-    undefined -> throw({internal_server_error, "Undefined path to ogr2ogr comand."});
-    _-> ok
-  end.
+  lists:foreach(fun ({Name, _}) ->
+    case get_config(Name) of
+      undefined -> throw({internal_server_error,
+        "Uninitialized config parameter " ++ Name ++ "."});
+      _ -> ok
+    end
+  end, couch_config:get("ogr2ogr")).
 
 get_allowed_roles() ->
   case couch_config:get("ogr2ogr", "roles") of
