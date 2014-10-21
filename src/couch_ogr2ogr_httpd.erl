@@ -34,7 +34,7 @@ handle_req(#httpd{method='GET'}=Req) ->
   validate_config(),
   couch_httpd:send_response(Req, 200,
     [{"Content-type", "application/json;charset=utf-8"}],
-    os:cmd(get_command())
+    os:cmd(get_config("command"))
   );
 
 handle_req(Req) ->
@@ -57,7 +57,7 @@ validate_config() ->
   end, couch_config:get("ogr2ogr")).
 
 get_allowed_roles() ->
-  case couch_config:get("ogr2ogr", "roles") of
+  case get_config("roles") of
     undefined -> [];
     Roles -> [ list_to_binary(Role) || Role <- string:tokens(Roles, "[]\", ") ]
   end.
