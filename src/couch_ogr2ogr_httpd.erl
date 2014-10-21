@@ -59,9 +59,7 @@ get_allowed_roles() ->
     Roles -> [ list_to_binary(Role) || Role <- string:tokens(Roles, ", ") ]
   end.
 
-verify_roles(#httpd{user_ctx=UserCtx}) ->
-  verify_roles(UserCtx);
-verify_roles(#user_ctx{roles=Roles}) ->
+verify_roles(#httpd{ user_ctx=#user_ctx{ roles=Roles } }) ->
   case get_allowed_roles() of
     [] -> ok;
     AllowedRoles -> verify_roles( Roles, [ <<"_admin">> | AllowedRoles] )
