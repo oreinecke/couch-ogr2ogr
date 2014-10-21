@@ -1,6 +1,6 @@
 -module(couch_ogr2ogr_httpd).
 
--export([handle_req/1, get_allowed_roles/0]).
+-export([handle_req/1]).
 
 -include_lib("couch/include/couch_db.hrl").
 
