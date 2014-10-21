@@ -9,25 +9,44 @@ handle_req(#httpd{method='POST'}=Req) ->
   validate_config(),
   couch_httpd:validate_ctype(Req, "application/json"),
   TempDir = mochitemp:mkdtemp(),
-  BaseName = filename:join(TempDir, "remove-me"),
-  {Props} = couch_httpd:json_body_obj(Req),
-  lists:foreach( fun({Extension, Content}) ->
-    file:write_file(BaseName ++ "." ++ binary_to_list(Extension), base64:decode(Content))
-  end, Props ),
-  os:cmd(get_command()
-    ++ " -f GeoJSON "
-    ++ case proplists:is_defined(<<"qpj">>, Props) of
-      true -> " -a_srs " ++ BaseName ++ ".qpj ";
-      false -> "" end
-    ++ BaseName ++ ".geojson "
-    ++ BaseName ++ ".shp"
-  ),
-  case file:read_file( BaseName ++ ".geojson") of
-    {ok, GeoJSON} ->
-      couch_httpd:send_response(Req, 200, [{"Content-type", "application/json;charset=utf-8"}], GeoJSON);
-    {err, _} -> throw({bad_request, "Unable to convert your input into a GeoJSON."})
-  end,
-  mochitemp:rmtempdir(TempDir);
+  try
+    BaseName = filename:join(TempDir, "remove-me"),
+    {Props} = couch_httpd:json_body_obj(Req),
+    lists:foreach( fun({Extension, Content}) ->
+      file:write_file(BaseName ++ "." ++ binary_to_list(Extension), base64:decode(Content))
+    end, Props ),
+    Command0 = get_config("command")
+      ++ " -f GeoJSON "
+      ++ BaseName ++ ".geojson "
+      ++ BaseName ++ ".shp "
+      ++ case proplists:is_defined(<<"qpj">>, Props) of
+        true -> " -a_srs " ++ BaseName ++ ".qpj ";
+        false -> ""
+      end,
+    AcquireGeoJSON = fun(Command) ->
+      couch_log:debug("[ogr2ogr] ~p", [Command] ),
+      couch_log:debug("[ogr2ogr] ~p", [os:cmd(Command)] ),
+      case file:read_file( BaseName ++ ".geojson") of
+        {ok, GeoJSON} ->
+          ejson:decode(GeoJSON);
+        {error, _} -> throw({bad_request, "Failed to convert your input into a GeoJSON."})
+      end
+    end,
+    {GeoJSON} = AcquireGeoJSON(Command0),
+    couch_httpd:send_json( Req, case proplists:is_defined(<<"crs">>, GeoJSON) of
+      true -> {GeoJSON};
+      false ->
+        file:delete(BaseName ++ ".geojson"),
+        os:putenv("GDAL_DATA", get_config("GDAL_DATA")),
+        Command1 = Command0
+          ++ " -t_srs "
+          ++ get_config("fallback_crs"),
+        AcquireGeoJSON(Command1)
+      end
+    )
+  after
+    mochitemp:rmtempdir(TempDir)
+  end;
 
 handle_req(#httpd{method='GET'}=Req) ->
   verify_roles(Req),
