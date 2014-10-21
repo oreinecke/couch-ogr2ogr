@@ -72,11 +72,7 @@ validate_config() ->
     end
   end, couch_config:get("ogr2ogr")).
 
-get_allowed_roles() ->
-  case get_config("roles") of
-    undefined -> [];
-    Roles -> [ list_to_binary(Role) || Role <- string:tokens(Roles, "[]\", ") ]
-  end.
+get_allowed_roles() -> ejson:decode(get_config("roles")).
 
 verify_roles(#httpd{ user_ctx=#user_ctx{ roles=Roles } }) ->
   case get_allowed_roles() of
