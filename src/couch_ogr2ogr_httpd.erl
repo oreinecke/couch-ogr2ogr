@@ -65,13 +65,13 @@ get_config(Name) ->
   end.
 
 validate_config() ->
-  lists:foreach(fun ({Name, _}) ->
+  lists:foreach( fun ({Name, _}) ->
     case get_config(Name) of
       undefined -> throw({internal_server_error,
         "Uninitialized config parameter " ++ Name ++ "."});
       _ -> ok
     end
-  end, couch_config:get("ogr2ogr")).
+  end, couch_config:get("ogr2ogr") ).
 
 verify_roles(#httpd{ user_ctx=#user_ctx{ roles=Roles } }) ->
   case ejson:decode(get_config("roles")) of
