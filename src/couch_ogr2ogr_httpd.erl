@@ -71,7 +71,14 @@ validate_config() ->
         "Uninitialized config parameter " ++ Name ++ "."});
       _ -> ok
     end
-  end, couch_config:get("ogr2ogr") ).
+  end, couch_config:get("ogr2ogr") ),
+  try
+    lists:foreach( fun(Role) when is_binary(Role) -> ok
+    end, ejson:decode(get_config("roles")) )
+  catch
+    _:_ -> throw({internal_server_error,
+      "Roles must be a JSON array of strings."})
+  end.
 
 verify_roles(#httpd{ user_ctx=#user_ctx{ roles=Roles } }) ->
   case ejson:decode(get_config("roles")) of
