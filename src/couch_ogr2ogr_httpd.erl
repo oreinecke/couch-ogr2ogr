@@ -73,10 +73,8 @@ validate_config() ->
     end
   end, couch_config:get("ogr2ogr")).
 
-get_allowed_roles() -> ejson:decode(get_config("roles")).
-
 verify_roles(#httpd{ user_ctx=#user_ctx{ roles=Roles } }) ->
-  case get_allowed_roles() of
+  case ejson:decode(get_config("roles")) of
     [] -> ok;
     AllowedRoles -> verify_roles( Roles, [ <<"_admin">> | AllowedRoles] )
   end.
