@@ -35,7 +35,6 @@ handle_req(#httpd{method='POST'}=Req) ->
       true -> {GeoJSON};
       false ->
         file:delete(BaseName ++ ".geojson"),
-        os:putenv("GDAL_DATA", get_config("GDAL_DATA")),
         Command1 = Command0
           ++ " -t_srs "
           ++ get_config("fallback_crs"),
@@ -67,8 +66,12 @@ get_config(Name) ->
 
 validate_config() ->
   lists:foreach( fun ({Name, _}) ->
-    case get_config(Name) of
-      undefined -> throw({internal_server_error,
+    case {Name, get_config(Name), os:getenv("GDAL_DATA")} of
+      {"GDAL_DATA", undefined, false} -> throw({internal_server_error,
+        "Found GDAL_DATA neither in config nor system env."});
+      {"GDAL_DATA", undefined, _} -> ok;
+      {"GDAL_DATA", GDAL_DATA, _} -> os:putenv("GDAL_DATA", GDAL_DATA);
+      {_, undefined, _} -> throw({internal_server_error,
         "Uninitialized config parameter " ++ Name ++ "."});
       _ -> ok
     end
