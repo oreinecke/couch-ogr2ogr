@@ -24,6 +24,7 @@ handle_req(#httpd{method='POST'}=Req) ->
         false -> ""
       end,
     AcquireGeoJSON = fun(Command) ->
+      os:cmd(Command),
       case file:read_file( BaseName ++ ".geojson") of
         {ok, GeoJSON} -> ejson:decode(GeoJSON);
         {error, _} -> throw({bad_request, "Failed to convert your input into a GeoJSON."})
