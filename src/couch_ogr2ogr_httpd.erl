@@ -5,8 +5,8 @@
 -include_lib("couch/include/couch_db.hrl").
 
 handle_req(#httpd{method='POST'}=Req) ->
-  verify_roles(Req),
   validate_config(),
+  verify_roles(Req),
   couch_httpd:validate_ctype(Req, "application/json"),
   TempDir = mochitemp:mkdtemp(),
   try
@@ -47,8 +47,8 @@ handle_req(#httpd{method='POST'}=Req) ->
   end;
 
 handle_req(#httpd{method='GET'}=Req) ->
-  verify_roles(Req),
   validate_config(),
+  verify_roles(Req),
   couch_httpd:send_response(Req, 200,
     [{"Content-type", "application/json;charset=utf-8"}],
     os:cmd(get_config("command"))
