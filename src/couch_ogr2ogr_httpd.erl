@@ -59,7 +59,6 @@ handle_req(Req) ->
 get_config(Name) ->
   case couch_config:get("ogr2ogr", Name) of
     "undefined" -> undefined;
-    "null" -> undefined;
     "" -> undefined;
     Config -> Config
   end.
