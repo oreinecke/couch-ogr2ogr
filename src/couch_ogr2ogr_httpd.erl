@@ -97,7 +97,7 @@ get_command(BaseName) ->
 
 get_config(Name) ->
   Error = {internal_server_error,
-    "Uninitialized config parameter " ++ Name ++ "."},
+    "Uninitialized config parameter: " ++ Name ++ "."},
   case couch_config:get("ogr2ogr", Name) of
     "undefined" -> throw(Error);
     undefined -> throw(Error);
