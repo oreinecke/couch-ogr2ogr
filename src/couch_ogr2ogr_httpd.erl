@@ -72,7 +72,6 @@ handle_req(#httpd{method='GET'}=Req) ->
       "PARAMETER[\"False_Easting\",5500000.0],PARAMETER[\"False_Northing\",0.0]," ++
       "PARAMETER[\"Central_Meridian\",15.0],PARAMETER[\"Scale_Factor\",1.0]," ++
       "PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]"),
-    Command0 = get_command(BaseName),
     Test = fun(Command, ErrorMessage) ->
       try
         os:cmd(Command),
@@ -83,7 +82,7 @@ handle_req(#httpd{method='GET'}=Req) ->
         _:_ -> throw({internal_server_error, ErrorMessage})
       end
     end,
-    Test(Command0,
+    Test(Command0 = get_command(BaseName),
       "Error trying to run " ++ get_config("command") ++ "."),
     Test(Command0 ++ " -t_srs EPSG:31495",
       "ogr2ogr seems to have trouble with your GDAL_DATA."),
