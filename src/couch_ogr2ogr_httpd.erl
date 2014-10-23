@@ -73,14 +73,18 @@ handle_req(#httpd{method='GET'}=Req) ->
       "PARAMETER[\"Central_Meridian\",15.0],PARAMETER[\"Scale_Factor\",1.0]," ++
       "PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]"),
     Command0 = get_command(BaseName),
-    try
-      os:cmd(Command0),
-      {ok, Result} = file:read_file(BaseName ++ ".geojson"),
-      {GeoJSON} = ejson:decode(Result)
-    catch
-      _:_ -> throw({internal_server_error,
-        "Error trying to run " ++ get_config("command") ++ "."})
+    Test = fun(Command, ErrorMessage) ->
+      try
+        os:cmd(Command),
+        {ok, Binary} = file:read_file(BaseName ++ ".geojson"),
+        {_} = ejson:decode(Binary),
+        file:delete(BaseName ++ ".geojson")
+      catch
+        _:_ -> throw({internal_server_error, ErrorMessage})
+      end
     end,
+    Test(Command0,
+      "Error trying to run " ++ get_config("command") ++ "."),
     couch_httpd:send_json(Req, {[{<<"ok">>,true}]})
   after
     mochitemp:rmtempdir(TempDir)
