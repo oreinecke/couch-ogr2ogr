@@ -45,10 +45,46 @@ handle_req(#httpd{method='POST'}=Req) ->
 handle_req(#httpd{method='GET'}=Req) ->
   validate_config(),
   verify_roles(Req),
-  couch_httpd:send_response(Req, 200,
-    [{"Content-type", "application/json;charset=utf-8"}],
-    os:cmd(get_config("command"))
-  );
+  TempDir = mochitemp:mkdtemp(),
+  try
+    BaseName = filename:join(TempDir, "remove-me"),
+    lists:foreach( fun({Extension, Content}) ->
+      file:write_file(BaseName ++ "." ++ Extension, base64:decode(Content))
+    end, [
+      {"shx","AAAnCgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANugDAAABAAAAHdwpRWmyVEFSycOdQ3"
+          ++ "xVQR3cKUVpslRBUsnDnUN8VUEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          ++ "AAAAADIAAAAK"},
+      {"shp","AAAnCgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQOgDAAABAAAAHdwpRWmyVEFSycOdQ3"
+          ++ "xVQR3cKUVpslRBUsnDnUN8VUEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          ++ "AAAAAAEAAAAKAQAAAB3cKUVpslRBUsnDnUN8VUE="},
+      {"dbf","A18HGgEAAABhAKEAAAAAAAAAAAAAAAAAAAAAAAAAAABDUlMAAAAAAAAAAEMAAAAAUA"
+          ++ "AAAAAAAAAAAAAAAAAAAHR5cGUAAAAAAAAAQwAAAABQAAAAAAAAAAAAAAAAAAAADSBF" 
+          ++ "UFNHOjMxNDY5ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC"
+          ++ "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgIENSUyAgICAgICAgICAgICAgICAg"
+          ++ "ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC"
+          ++ "AgICAgICAgICAg"}
+    ]),
+    file:write_file(BaseName ++ ".prj", "PROJCS[\"Germany_Zone_5\"," ++
+      "GEOGCS[\"GCS_Deutsches_Hauptdreiecksnetz\"," ++
+      "DATUM[\"D_Deutsches_Hauptdreiecksnetz\"," ++
+      "SPHEROID[\"Bessel_1841\",6377397.155,299.1528128]],PRIMEM[\"Greenwich\",0.0]," ++
+      "UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"]," ++
+      "PARAMETER[\"False_Easting\",5500000.0],PARAMETER[\"False_Northing\",0.0]," ++
+      "PARAMETER[\"Central_Meridian\",15.0],PARAMETER[\"Scale_Factor\",1.0]," ++
+      "PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]"),
+    Command0 = get_command(BaseName),
+    try
+      os:cmd(Command0),
+      {ok, Result} = file:read_file(BaseName ++ ".geojson"),
+      {GeoJSON} = ejson:decode(Result)
+    catch
+      _:_ -> throw({internal_server_error,
+        "Error trying to run " ++ get_config("command") ++ "."})
+    end,
+    couch_httpd:send_json(Req, {[{<<"ok">>,true}]})
+  after
+    mochitemp:rmtempdir(TempDir)
+  end;
 
 handle_req(Req) ->
   couch_httpd:send_method_not_allowed(Req, "GET,POST").
