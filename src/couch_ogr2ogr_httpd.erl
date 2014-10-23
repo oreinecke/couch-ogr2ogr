@@ -85,6 +85,10 @@ handle_req(#httpd{method='GET'}=Req) ->
     end,
     Test(Command0,
       "Error trying to run " ++ get_config("command") ++ "."),
+    Test(Command0 ++ " -t_srs EPSG:31495",
+      "ogr2ogr seems to have trouble with your GDAL_DATA."),
+    Test(Command0 ++ " -t_srs " ++ get_config("fallback_crs"),
+      "ogr2ogr seems to have trouble with your fallback_crs."),
     couch_httpd:send_json(Req, {[{<<"ok">>,true}]})
   after
     mochitemp:rmtempdir(TempDir)
