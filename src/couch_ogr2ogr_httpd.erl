@@ -15,10 +15,7 @@ handle_req(#httpd{method='POST'}=Req) ->
     lists:foreach( fun({Extension, Content}) ->
       file:write_file(BaseName ++ "." ++ binary_to_list(Extension), base64:decode(Content))
     end, Props ),
-    Command0 = get_config("command")
-      ++ " -f GeoJSON "
-      ++ BaseName ++ ".geojson "
-      ++ BaseName ++ ".shp "
+    Command0 = get_command(BaseName)
       ++ case proplists:is_defined(<<"qpj">>, Props) of
         true -> " -a_srs " ++ BaseName ++ ".qpj ";
         false -> ""
@@ -55,6 +52,12 @@ handle_req(#httpd{method='GET'}=Req) ->
 
 handle_req(Req) ->
   couch_httpd:send_method_not_allowed(Req, "GET,POST").
+
+get_command(BaseName) ->
+  get_config("command")
+    ++ " -f GeoJSON "
+    ++ BaseName ++ ".geojson "
+    ++ BaseName ++ ".shp".
 
 get_config(Name) ->
   Error = {internal_server_error,
