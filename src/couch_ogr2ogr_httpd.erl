@@ -57,24 +57,23 @@ handle_req(Req) ->
   couch_httpd:send_method_not_allowed(Req, "GET,POST").
 
 get_config(Name) ->
+  Error = {internal_server_error,
+    "Uninitialized config parameter " ++ Name ++ "."},
   case couch_config:get("ogr2ogr", Name) of
-    "undefined" -> undefined;
-    "" -> undefined;
+    "undefined" -> throw(Error);
+    undefined -> throw(Error);
+    "" -> throw(Error);
     Config -> Config
   end.
 
 validate_config() ->
-  lists:foreach( fun ({Name, _}) ->
-    case {Name, get_config(Name), os:getenv("GDAL_DATA")} of
-      {"GDAL_DATA", undefined, false} -> throw({internal_server_error,
-        "Found GDAL_DATA neither in config nor system env."});
-      {"GDAL_DATA", undefined, _} -> ok;
-      {"GDAL_DATA", GDAL_DATA, _} -> os:putenv("GDAL_DATA", GDAL_DATA);
-      {_, undefined, _} -> throw({internal_server_error,
-        "Uninitialized config parameter " ++ Name ++ "."});
-      _ -> ok
-    end
-  end, couch_config:get("ogr2ogr") ),
+  case {os:getenv("GDAL_DATA"), couch_config:get("ogr2ogr", "GDAL_DATA")} of
+    {false, _} -> os:putenv("GDAL_DATA", get_config("GDAL_DATA"));
+    {_, ""} -> ok;
+    {_, undefined} -> ok;
+    {_, "undefined"} -> ok;
+    {_, GDAL_DATA} -> os:putenv("GDAL_DATA", GDAL_DATA)
+  end,
   try
     lists:foreach( fun(Role) when is_binary(Role) -> ok
     end, ejson:decode(get_config("roles")) )
