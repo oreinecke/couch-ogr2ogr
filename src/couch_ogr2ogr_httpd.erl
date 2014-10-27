@@ -148,5 +148,6 @@ verify_roles(Roles, [ Role | AllowedRoles] ) ->
     true -> ok;
     _ -> verify_roles(Roles, AllowedRoles)
   end;
+
 verify_roles(_, [] ) ->
   throw({unauthorized, "You are not authorized to access this service."}).
