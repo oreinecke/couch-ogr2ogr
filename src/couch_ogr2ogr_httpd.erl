@@ -83,7 +83,7 @@ handle_req(#httpd{method='GET'}=Req) ->
       end
     end,
     Test(Command0 = get_command(BaseName),
-      "Error trying to run " ++ get_config("command") ++ "."),
+      "OS seems to have trouble with your command."),
     Test(Command0 ++ " -t_srs EPSG:31495",
       "ogr2ogr seems to have trouble with your GDAL_DATA."),
     Test(Command0 ++ " -t_srs " ++ get_config("fallback_crs"),
