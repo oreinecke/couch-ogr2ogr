@@ -15,7 +15,7 @@ handle_req(#httpd{method='POST'}=Req) ->
     lists:foreach( fun({Extension, Content}) ->
       file:write_file(BaseName ++ "." ++ binary_to_list(Extension), base64:decode(Content))
     end, Props ),
-    Command0 = get_command(BaseName)
+    Command0 = get_command(BaseName, proplists:get_keys(Props))
       ++ case proplists:is_defined(<<"qpj">>, Props) of
         true -> " -a_srs " ++ BaseName ++ ".qpj ";
         false -> ""
@@ -82,7 +82,7 @@ handle_req(#httpd{method='GET'}=Req) ->
         _:_ -> throw({internal_server_error, ErrorMessage})
       end
     end,
-    Test(Command0 = get_command(BaseName),
+    Test(Command0 = get_command(BaseName, [<<"shp">>]),
       "OS seems to have trouble with your command."),
     Test(Command0 ++ " -t_srs EPSG:31495",
       "ogr2ogr seems to have trouble with your GDAL_DATA."),
@@ -96,11 +96,20 @@ handle_req(#httpd{method='GET'}=Req) ->
 handle_req(Req) ->
   couch_httpd:send_method_not_allowed(Req, "GET,POST").
 
-get_command(BaseName) ->
+get_command(BaseName, [FileType]) ->
   get_config("command")
     ++ " -f GeoJSON "
     ++ BaseName ++ ".geojson "
-    ++ BaseName ++ ".shp".
+    ++ BaseName ++ "." ++ FileType;
+
+get_command(BaseName, [FileType|_] = FileTypes) ->
+  case lists:member(<<"shp">>, FileTypes) of
+    true -> get_command(BaseName, [<<"shp">>]);
+    false -> get_command(BaseName, [FileType])
+  end;
+
+get_command(_, []) ->
+  throw({bad_request, "No input files in request body."}).
 
 get_config(Name) ->
   Error = {internal_server_error,
