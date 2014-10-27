@@ -88,7 +88,7 @@ handle_req(#httpd{method='GET'}=Req) ->
       "ogr2ogr seems to have trouble with your GDAL_DATA."),
     Test(Command0 ++ " -t_srs " ++ get_config("fallback_crs"),
       "ogr2ogr seems to have trouble with your fallback_crs."),
-    couch_httpd:send_json(Req, {[{<<"ok">>,true}]})
+    couch_httpd:send_json(Req, {[{<<"ok">>, true}]})
   after
     mochitemp:rmtempdir(TempDir)
   end;
@@ -133,6 +133,7 @@ verify_roles(#httpd{ user_ctx=#user_ctx{ roles=Roles } }) ->
     [] -> ok;
     AllowedRoles -> verify_roles( Roles, [ <<"_admin">> | AllowedRoles] )
   end.
+
 verify_roles(Roles, [ Role | AllowedRoles] ) ->
   case lists:member(Role, Roles) of
     true -> ok;
