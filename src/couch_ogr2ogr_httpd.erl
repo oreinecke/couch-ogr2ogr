@@ -103,8 +103,8 @@ get_command(BaseName, [FileType]) ->
     ++ BaseName ++ "." ++ FileType;
 
 get_command(BaseName, [FileType|_] = FileTypes) ->
-  case lists:member(<<"shp">>, FileTypes) of
-    true -> get_command(BaseName, [<<"shp">>]);
+  case lists:member(SHP = <<"shp">>, FileTypes) of
+    true -> get_command(BaseName, [SHP]);
     false -> get_command(BaseName, [FileType])
   end;
 
