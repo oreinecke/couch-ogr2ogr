@@ -17,7 +17,7 @@ handle_req(#httpd{method='POST'}=Req) ->
     end, Props ),
     Command0 = get_command(BaseName, proplists:get_keys(Props))
       ++ case proplists:is_defined(<<"qpj">>, Props) of
-        true -> " -a_srs " ++ BaseName ++ ".qpj ";
+        true -> " -a_srs " ++ BaseName ++ ".qpj";
         false -> ""
       end,
     AcquireGeoJSON = fun(Command) ->
