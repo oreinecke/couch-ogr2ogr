@@ -82,7 +82,7 @@ handle_req(#httpd{method='GET'}=Req) ->
         _:_ -> throw({internal_server_error, ErrorMessage})
       end
     end,
-    Test(Command0 = get_command(BaseName, [<<"shp">>]),
+    Test(Command0 = get_command(BaseName, ["shp"]),
       "OS seems to have trouble with your command."),
     Test(Command0 ++ " -t_srs EPSG:31495",
       "ogr2ogr seems to have trouble with your GDAL_DATA."),
@@ -96,14 +96,17 @@ handle_req(#httpd{method='GET'}=Req) ->
 handle_req(Req) ->
   couch_httpd:send_method_not_allowed(Req, "GET,POST").
 
+get_command(BaseName, [_FileType|_] = FileTypes) when is_binary(_FileType) ->
+  get_command(BaseName, [binary_to_list(FileType) || FileType<-FileTypes]);
+
 get_command(BaseName, [FileType]) ->
   get_config("command")
     ++ " -f GeoJSON "
     ++ BaseName ++ ".geojson "
-    ++ BaseName ++ "." ++ binary_to_list(FileType);
+    ++ BaseName ++ "." ++ FileType;
 
 get_command(BaseName, [FileType|_] = FileTypes) ->
-  case lists:member(SHP = <<"shp">>, FileTypes) of
+  case lists:member(SHP = "shp", FileTypes) of
     true -> get_command(BaseName, [SHP]);
     false -> get_command(BaseName, [FileType])
   end;
