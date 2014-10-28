@@ -100,7 +100,7 @@ get_command(BaseName, [FileType]) ->
   get_config("command")
     ++ " -f GeoJSON "
     ++ BaseName ++ ".geojson "
-    ++ BaseName ++ "." ++ FileType;
+    ++ BaseName ++ "." ++ binary_to_list(FileType);
 
 get_command(BaseName, [FileType|_] = FileTypes) ->
   case lists:member(SHP = <<"shp">>, FileTypes) of
