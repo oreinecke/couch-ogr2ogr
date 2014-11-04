@@ -22,10 +22,8 @@ handle_req(#httpd{method='POST'}=Req) ->
       end,
     AcquireGeoJSON = fun(Command) ->
       os:cmd(Command),
-      case file:read_file( BaseName ++ ".geojson") of
-        {ok, GeoJSON} -> ejson:decode(GeoJSON);
-        {error, _} -> throw({bad_request, "Failed to convert your input into a GeoJSON."})
-      end
+      {ok, GeoJSON} = file:read_file( BaseName ++ ".geojson"),
+      ejson:decode(GeoJSON)
     end,
     {GeoJSON} = AcquireGeoJSON(Command0),
     couch_httpd:send_json( Req, case proplists:is_defined(<<"crs">>, GeoJSON) of
@@ -38,6 +36,9 @@ handle_req(#httpd{method='POST'}=Req) ->
         AcquireGeoJSON(Command1)
       end
     )
+  catch
+    _:_ -> throw({bad_request,
+      "Failed to convert your input into a GeoJSON."})
   after
     mochitemp:rmtempdir(TempDir)
   end;
