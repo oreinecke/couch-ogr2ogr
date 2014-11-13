@@ -40,6 +40,8 @@ handle_req(#httpd{method='POST'}=Req) ->
       end
     )
   catch
+    _:{bad_request, Message} -> throw({bad_request, Message});
+    _:{internal_server_error, Message} -> throw({internal_server_error, Message});
     _:_ -> throw({bad_request,
       "Failed to convert your input into a FeatureCollection."})
   after
