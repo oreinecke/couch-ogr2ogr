@@ -26,13 +26,12 @@ Some config vars are set expicitely to `"undefined"`. This way they still show
 up in the futon config page. The plugin won't try to do anything until they
 seem to be valid. They are:
 - `command`: what erlang would have to type to launch ogr2ogr. On Linux it is
-  presumably just that, but for instance I have set it to `"D:\Program
-  Files\QGIS Dufur\bin\ogr2ogr.exe"`. The quotes prevent Windows from mistaking
-  it as a command and an argument.
+  presumably just that, but for instance I have set it to `D:\Program
+  Files\QGIS Dufur\bin\ogr2ogr.exe`.
 - `GDAL_DATA`: provides the environment variable of the same name if it isn't
   part of the environment yet. In my case it points to `D:\Program Files\QGIS
-  Dufur\share\gdal` (without quotes this time), and is required by ogr2ogr to
-  look up known projection definitions.
+  Dufur\share\gdal`, and is required by ogr2ogr to look up known projection
+  definitions.
 - `fallback_crs`: if ogr2ogr can't figure out the known projection name from an
   ill-formatted ESRI .prj-file, the plugin will tell it to transform it to that
   projection, e.g. EPSG:31497.

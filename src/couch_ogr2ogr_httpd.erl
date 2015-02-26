@@ -106,7 +106,7 @@ get_command(BaseName, [_FileType|_] = FileTypes) when is_binary(_FileType) ->
   get_command(BaseName, [binary_to_list(FileType) || FileType<-FileTypes]);
 
 get_command(BaseName, [FileType]) ->
-  get_config("command")
+  "\"" ++ get_config("command") ++ "\""
     ++ " -f GeoJSON "
     ++ BaseName ++ ".geojson "
     ++ BaseName ++ "." ++ FileType;
