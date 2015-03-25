@@ -22,9 +22,9 @@ regular plugin and can be uninstalled just as easy.
 Configuration
 -------------
 
-Some config vars are set expicitely to `"undefined"`. This way they still show
-up in the futon config page. The plugin won't try to do anything until they
-seem to be valid. They are:
+Some config vars are set expicitely to `undefined`. This way they still show up
+in the futon config page. The plugin won't try to do anything until they seem
+to be valid. They are:
 - `command`: what erlang would have to type to launch ogr2ogr. On Linux it is
   presumably just that, but for instance I have set it to `D:\Program
   Files\QGIS Dufur\bin\ogr2ogr.exe`.
