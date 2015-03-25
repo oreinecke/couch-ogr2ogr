@@ -11,9 +11,9 @@ Installation
 
 Compile the single erl script and place it in a meaningful sub-folder of the
 lib folder of your CouchDB installation, and then append the content of
-priv/default.d/ogr2ogr.ini to your local.ini. While these sound like horrible
-instructions, they are probably the easiest way to install CouchDB plugins on
-Windows.
+[ogr2ogr.ini](priv/default.d/ogr2ogr.ini) to your local.ini. While these sound
+like horrible instructions, they are probably the easiest way to install
+CouchDB plugins on Windows.
 
 On Linux you can do `make plugin`, upload the plugin slug to your CouchDB, and
 post the appropriate plugin-data to `/_plugins`. This way it gets listed as a
@@ -62,7 +62,7 @@ expects a JSON object like this in the request body:
 
 where the field name denotes the file name extension and the value must be its
 base64 encoded binary content. Any formats known to ogr2ogr should work in
-principal, so I've made no restriction on the type or number of uploaded files.
+principle, so I've made no restriction on the type or number of uploaded files.
 
-It returns a GeoJSON FeatureCollection (200) or an error message that describes
-what might have gone wrong (400/500).
+It returns `HTTP/1.1 200 OK` and a GeoJSON FeatureCollection, or an error code
+with a message that tells you what might have gone wrong.
